@@ -4,12 +4,16 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
 
-import org.openflow.protocol.OFFlowMod;
-import org.openflow.protocol.OFMatch;
-import org.openflow.protocol.OFPhysicalPort;
-import org.openflow.protocol.OFPort;
-import org.openflow.protocol.action.OFAction;
-import org.openflow.protocol.action.OFActionType;
+import net.floodlightcontroller.core.PortChangeType;
+import net.floodlightcontroller.core.internal.IOFSwitchService;
+import net.floodlightcontroller.linkdiscovery.ILinkDiscovery;
+import org.projectfloodlight.openflow.protocol.OFActionType;
+import org.projectfloodlight.openflow.protocol.OFFactories;
+import org.projectfloodlight.openflow.protocol.OFFlowMod;
+import org.projectfloodlight.openflow.protocol.OFPortDesc;
+import org.projectfloodlight.openflow.protocol.action.OFAction;
+import org.projectfloodlight.openflow.types.DatapathId;
+import org.projectfloodlight.openflow.types.OFPort;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,6 +33,7 @@ import net.floodlightcontroller.staticflowentry.IStaticFlowEntryPusherService;
 public class DHCPSwitchFlowSetter implements IFloodlightModule, IOFSwitchListener {
 	protected static Logger log;
 	protected IFloodlightProviderService floodlightProvider;
+	protected IOFSwitchService switchService;
 	protected IStaticFlowEntryPusherService sfp;
 	
 	@Override
@@ -54,6 +59,7 @@ public class DHCPSwitchFlowSetter implements IFloodlightModule, IOFSwitchListene
 	public void init(FloodlightModuleContext context)
 			throws FloodlightModuleException {
 		floodlightProvider = context.getServiceImpl(IFloodlightProviderService.class);
+		switchService = context.getServiceImpl(IOFSwitchService.class);
 		log = LoggerFactory.getLogger(DHCPServer.class);
 		sfp = context.getServiceImpl(IStaticFlowEntryPusherService.class);
 	}
@@ -63,16 +69,31 @@ public class DHCPSwitchFlowSetter implements IFloodlightModule, IOFSwitchListene
 	}
 
 	@Override
-	public void addedSwitch(IOFSwitch sw) {
+	public void switchAdded(DatapathId swid) {
+
+
+
+/*
+		IOFSwitch sw = switchService.getSwitch(swid);
+		if (sw.getEnabledPortNumbers() != null) {
+			for (OFPort p : sw.getEnabledPortNumbers()) {
+				processNewPort(sw.getId(), p);
+			}
+		}
+		ILinkDiscovery.LDUpdate update = new ILinkDiscovery.LDUpdate(sw.getId(), ILinkDiscovery.SwitchType.BASIC_SWITCH, ILinkDiscovery.UpdateOperation.SWITCH_UPDATED);
+		updates.add(update);
+*/
+		System.out.println("TODO: ADD STATIC RULE HERE?");
+
 		/** Insert static flows on all ports of the switch to redirect
 		 * DHCP client --> DHCP DHCPServer traffic to the controller.
 		 * DHCP client's operate on UDP port 67
-		 */
+
 		OFFlowMod flow = new OFFlowMod();
-		OFMatch match = new OFMatch();
+		//OFMatch match = new OFMatch();
 		ArrayList<OFAction> actionList = new ArrayList<OFAction>();
 		OFAction action = new OFAction();
-		for (OFPhysicalPort port : sw.getPorts()) {
+		for (OFPort port : swid..getPorts()) {
 			match.setInputPort(port.getPortNumber());
 			match.setDataLayerType(Ethernet.TYPE_IPv4);
 			match.setNetworkProtocol(IPv4.PROTOCOL_UDP);
@@ -90,19 +111,39 @@ public class DHCPSwitchFlowSetter implements IFloodlightModule, IOFSwitchListene
 			flow.setMatch(match);
 			flow.setPriority((short) 32768);
 			sfp.addFlow("dhcp-port---"+port.getPortNumber()+"---("+port.getName()+")", flow, sw.getStringId());
-		}		
+		}
+		 */
 	}
 
-	@Override
-	public void removedSwitch(IOFSwitch sw) {		
+	public void removedSwitch(IOFSwitch sw) {
 	}
 
-	@Override
-	public void switchPortChanged(Long switchId) {		
+	public void switchPortChanged(Long switchId) {
 	}
 
-	@Override
 	public String getName() {
 		return DHCPSwitchFlowSetter.class.getSimpleName();
+	}
+
+
+
+	@Override
+	public void switchRemoved(DatapathId switchId) {
+
+	}
+
+	@Override
+	public void switchActivated(DatapathId switchId) {
+
+	}
+
+	@Override
+	public void switchPortChanged(DatapathId switchId, OFPortDesc port, PortChangeType type) {
+
+	}
+
+	@Override
+	public void switchChanged(DatapathId switchId) {
+
 	}
 }

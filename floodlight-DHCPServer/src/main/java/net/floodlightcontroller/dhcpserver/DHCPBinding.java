@@ -4,7 +4,7 @@ import java.util.Arrays;
 
 import net.floodlightcontroller.packet.IPv4;
 import net.floodlightcontroller.packet.Ethernet;
-import net.floodlightcontroller.util.MACAddress;
+import org.projectfloodlight.openflow.types.MacAddress;
 
 import java.lang.String;
 
@@ -54,7 +54,8 @@ public class DHCPBinding {
 	}
 	
 	public String getMACAddressString() {
-		return MACAddress.valueOf(MAC).toString();
+		System.out.println("getMacAddress of : " + MAC + " is : " + new String(MAC));
+		return new String(MAC);
 	}
 	
 	private void setIPv4Addresss(byte[] ip) {
